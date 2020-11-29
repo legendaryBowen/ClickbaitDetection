@@ -163,7 +163,7 @@ Y_train_oh = convert_to_one_hot(Y_train, C = 4)
 print(X_train_indices.shape)
 
 # Training 
-model.fit(X_train_indices, Y_train_oh, epochs = 20, batch_size = 64, shuffle=True)
+model.fit(X_train_indices, Y_train_oh, epochs = 20, batch_size = 32, shuffle=True)
 
 # Convert onehot to binary 
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score,roc_auc_score, mean_squared_error 
