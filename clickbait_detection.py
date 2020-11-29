@@ -194,7 +194,7 @@ print('***********************')
 print('Minimum MSE %s' % mean_squared_error(Y_test_mean, Y_test))
 
 # Save our model
-model.save("clickbait_detection_model")
+model.save("clickbait_detection_model.h5")
 
 # # Error Analysis
 # for i in range(1000):

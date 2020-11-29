@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from nltk import download
-download('punkt')
+#download('punkt')
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 from keras.layers.embeddings import Embedding
@@ -129,15 +129,4 @@ def count_punc(postText):
 def toInteger(truthMedian):
     return round(truthMedian*3)
 
-# real-word title prediction
-# def predict(test_string):
-#     test_string = cleanText(test_string)
-#     test = np.array([test_string])
-#     test_indices = sentences_to_indices(test, word_to_index, max_len = maxLen)
-#     y_pred_onehot = model.predict(test_indices)
-#     y_pred_binary = onehot_to_binary(y_pred_onehot)
-#     if y_pred_binary == [1]:
-#         return True
-#     else:
-#         return False
 
