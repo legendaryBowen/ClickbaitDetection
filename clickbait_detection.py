@@ -195,23 +195,3 @@ print('Minimum MSE %s' % mean_squared_error(Y_test_mean, Y_test))
 
 # Save our model
 model.save("clickbait_detection_model.h5")
-
-# # Error Analysis
-# for i in range(1000):
-#     if Y_test[i] - y_pred_binary[i] != 0:
-#         print(X_test[i])
-#         print("Actual Label",Y_test[i])
-#         print("Prediction Lable",y_pred_binary[i])
-#         print("Prediction",y_pred_onehot[i])
-#         print("-------------")
-
-# def test(test_string):
-#     test_string = cleanText(test_string)
-#     test = np.array([test_string])
-#     test_indices = sentences_to_indices(test, word_to_index, max_len = maxLen)
-#     y_pred_onehot = model.predict(test_indices)
-#     y_pred_binary = onehot_to_binary(y_pred_onehot)
-#     if y_pred_binary == [1]:
-#         return True
-#     else:
-#         return False
