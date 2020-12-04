@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from nltk import download
+from keras.models import Model
 #download('punkt')
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
@@ -21,7 +22,6 @@ def read_glove_vecs(glove_file):
             curr_word = line[0]
             words.add(curr_word)
             word_to_vec_map[curr_word] = np.array(line[1:], dtype=np.float64)
-        
         i = 1
         words_to_index = {}
         index_to_words = {}
@@ -33,7 +33,6 @@ def read_glove_vecs(glove_file):
 
 # softmax function
 def softmax(x):
-    """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
@@ -57,7 +56,7 @@ def onehot_to_binary(data):
 def pretrained_embedding_layer(word_to_vec_map, word_to_index):
     vocab_len = len(word_to_index) + 1        
     # define dimensionality of your GloVe word vectors (= 50)
-    emb_dim = word_to_vec_map["happy"].shape[0]      
+    emb_dim = word_to_vec_map["test"].shape[0]      
     # Initialize the embedding matrix as a numpy array of zeros.
     # See instructions above to choose the correct shape.
     emb_matrix = np.zeros((vocab_len,emb_dim))
@@ -107,26 +106,41 @@ def stemming(postText):
         newsentence.append(ps.stem(word))
     return ' '.join(newsentence)
 
-# remove all punctuations
+# convert the 'no-clickbait' or 'clickbait' to binary indicator
+def classToBinary(truthClass):
+    if truthClass == 'no-clickbait':
+        return 0
+    else:
+        return 1
+
+# Convert floating number in 'truthMedian' column to integer
+def medianToInteger(truthMedian):
+    return round(truthMedian*3)
+
+# Lower the text and remove all punctuation
 def cleanText(text):
     text = text.lower()
     text = text.translate(str.maketrans('', '', string.punctuation))
     text = re.sub(r'[^\w\s]', '', text) 
     return text
 
-# convert the 'no-clickbait' or 'clickbait' to binary indicator
-def toBinary(truthClass):
-    if truthClass == 'no-clickbait':
-        return 0
-    else:
-        return 1
-    
-# length of a postText
-def count_punc(postText):
-    return len(postText)
+# Get the max length of a headline in dataset
+def maxLengthInPostText(df):
+    maxLen = 0
+    for i in range(len(df)):
+        sentence = df["postText"][i]
+        if len(sentence.split()) > maxLen:
+            maxLen = len(sentence.split())
+    return maxLen
 
-# Convert truthMedian floating number to integer
-def toInteger(truthMedian):
-    return round(truthMedian*3)
-
+# Convert onehot representation to binary classification(0 or 1) according to our formula
+def onehot_to_binary(data):
+    binary = []
+    for i in range(len(data)):
+        if 2/3*data[i][3] + 1/3*data[i][2] > 2/3*data[i][0] + 1/3*data[i][1]:
+        #if data[i][3] + data[i][2] > data[i][0] + data[i][1]:
+            binary.append(1)
+        else:
+            binary.append(0)
+    return binary
 
