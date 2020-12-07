@@ -7,12 +7,16 @@ This file:
 
 from nltk.tokenize import word_tokenize, sent_tokenize, regexp_tokenize
 from nltk.stem import PorterStemmer, WordNetLemmatizer
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import sqlite3
 import os
 
+pd.set_option('display.max_columns', 1000)
+pd.set_option('display.width', 1000)
+pd.set_option('display.max_colwidth', 1000)
 
 def headline_length(file_directory):
 	#  database
@@ -38,24 +42,49 @@ def headline_length(file_directory):
 
 		length_count.append([e[0], len(lt_result), e[2]])
 
-	# print(length_count[:3])
 
 	temp = np.array(length_count)
 	temp = temp[:, 1]
 	temp = temp.astype(np.int)
-	min = np.amin(temp)
-	max = np.amax(temp)
-	d = max - min
+	# --- Normalization --- #
+	# min = np.amin(temp)
+	# max = np.amax(temp)
+	# d = max - min
+	#
+	#
+	# for e in length_count:
+	# 	text_id = e[0]
+	# 	tweet_length_count = e[1]
+	# 	tweet_length_normalization = (e[1] - min) / d
+	# 	click_bait = e[2]
+	#
+	# 	cur.execute(
+	# 		"insert or ignore into features_copy(text_id, tweet_length_count, tweet_length_norm, click_bait)"
+	# 		"values(?, ?, ?, ?)", (text_id, tweet_length_count, tweet_length_normalization, click_bait))
 
+
+	# --- Standardization --- #
+	temp = temp.reshape(-1, 1)
+	# print(temp[:4])
+	sc = StandardScaler()
+	tweet_length_normalization_list = sc.fit_transform((temp))
+	# print(tweet_length_normalization_list[:4])
+	tweet_length_normalization_list = tweet_length_normalization_list.reshape(1, -1)
+	tweet_length_normalization_list = tweet_length_normalization_list[0]
+	# print(tweet_length_normalization_list[:4])
+
+	i = 0
 	for e in length_count:
 		text_id = e[0]
 		tweet_length_count = e[1]
-		tweet_length_normalization = (e[1] - min) / d
+		tweet_length_normalization = tweet_length_normalization_list[i]
 		click_bait = e[2]
-
+		i += 1
 		cur.execute(
-			"insert or ignore into features(text_id, tweet_length_count, tweet_length_norm, click_bait)"
+			"insert or ignore into features_copy(text_id, tweet_length_count, tweet_length_norm, click_bait)"
 			"values(?, ?, ?, ?)", (text_id, tweet_length_count, tweet_length_normalization, click_bait))
+
+
 
 	db_connection.commit()
 	cur.close()
@@ -88,13 +117,15 @@ def headline_length_analysis(file_directory):
 	pct_plot1.set_xlabel("Tweet Length: TL")
 	pct_plot1.set_ylabel("% of Headlines of Length TL")
 	pct_plot1.set_title(label="global 'non-cb' and 'cb' distribution")
+	plt.xticks(rotation=45)
+	plt.show()
 
 	df1 = df1.divide(df1.sum(axis=1), axis=0)
 	pct_plot2 = df1.plot(kind="bar", stacked=False)
 	pct_plot2.set_xlabel("Tweet Length: TL")
 	pct_plot2.set_ylabel("Composition with TL")
 	pct_plot2.set_title(label="global 'non-cb' and 'cb' distribution")
-
+	plt.xticks(rotation=45)
 	plt.show()
 
 	print("deviation of 'tweet length' of clickbait tweet:")

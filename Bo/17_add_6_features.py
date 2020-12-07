@@ -4,7 +4,7 @@ This file:
 "numOfPunctuation", "numOfPunctuationNorm", "clickbaitWords",
 "clickbaitWordsNorm", "numOfNumerics", "numOfNumericsNorm"
 """
-
+import numpy as np
 import pandas as pd
 import sqlite3
 import os
@@ -30,8 +30,14 @@ df.columns = ["text_id", "numOfPunctuation", "numOfPunctuationNorm",
 			  "clickbaitWords", "clickbaitWordsNorm", "numOfNumerics", "numOfNumericsNorm"]
 
 
+# --- Standardization --- #
+df["numOfPunctuationNorm"] = (df["numOfPunctuationNorm"] - np.mean(df["numOfPunctuationNorm"])) / np.std(df["numOfPunctuationNorm"])
+df["clickbaitWordsNorm"] = (df["clickbaitWordsNorm"] - np.mean(df["clickbaitWordsNorm"])) / np.std(df["clickbaitWordsNorm"])
+df["numOfNumericsNorm"] = (df["numOfNumericsNorm"] - np.mean(df["numOfNumericsNorm"])) / np.std(df["numOfNumericsNorm"])
+
+
 for i in range(0, df.shape[0]):
-	cur.execute("update features set numOfPunctuation = ?, numOfPunctuationNorm = ?,"
+	cur.execute("update features_copy set numOfPunctuation = ?, numOfPunctuationNorm = ?,"
 				"clickbaitWords= ?, clickbaitWordsNorm =?, numOfNumerics = ?, numOfNumericsNorm = ? "
 				"where text_id = ?",
 				(int(df["numOfPunctuation"][i]), df["numOfPunctuationNorm"][i], int(df["clickbaitWords"][i]),

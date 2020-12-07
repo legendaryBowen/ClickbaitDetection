@@ -32,8 +32,8 @@ def pos(file_directory):
 	post_test_list = []
 	click_bait_list = []
 	tweet_length_count_list = []
-	pos_count = np.zeros((19463, 35), dtype=np.int)
-	pos_count_percentage = np.zeros((19463, 35), dtype=np.double)
+	pos_count = np.zeros((len(entries), 35), dtype=np.int)
+	pos_count_percentage = np.zeros((len(entries), 35), dtype=np.double)
 	pos_item_list = ["CC", "CD", "DT", "EX", "FW",
 					 "IN", "JJ", "JJR", "JJS", "LS",
 					 "MD", "NN", "NNS", "NNP", "NNPS",
@@ -80,9 +80,9 @@ def pos(file_directory):
 
 	print(sum(sum_pos_count_click_bait), sum(sum_pos_count_non_click_bait))
 
-	pos_count_6_cat = np.zeros((19463, 6), dtype=np.double)
+	pos_count_6_cat = np.zeros((len(entries), 6), dtype=np.double)
 
-	for i in range(0, 19463):
+	for i in range(0, len(entries)):
 		if tweet_length_count_list[i] == 0:
 			pos_count_6_cat[i][0] = pos_count_6_cat[i][1] = pos_count_6_cat[i][2] = \
 				pos_count_6_cat[i][3] = pos_count_6_cat[i][4] = pos_count_6_cat[i][5] = 0
@@ -102,12 +102,21 @@ def pos(file_directory):
 			pos_count_6_cat[i][5] = (pos_count[i][24] + pos_count[i][4] + pos_count[i][9] + pos_count[i][1]) / int(
 				tweet_length_count_list[i])
 
-	for i in range(0, 19463):
-		cur.execute("update features set noun_pct = ?, verb_pct = ?, preposition_pct = ?, "
-					"function_pct = ?, qualifier_pct = ?, others_pct = ?"
+	# --- Standardization --- #
+	pos_count_6_cat_normalization = (pos_count_6_cat - np.mean(pos_count_6_cat)) / np.std(pos_count_6_cat)
+
+
+	for i in range(0, len(entries)):
+		cur.execute("update features_copy set noun_pct = ?, verb_pct = ?, preposition_pct = ?, "
+					"function_pct = ?, qualifier_pct = ?, others_pct = ?, noun_pct_norm = ?, "
+					"verb_pct_norm = ?, preposition_pct_norm = ?, function_pct_norm = ?, "
+					"qualifier_pct_norm = ?, others_pct_norm = ?"					
 					" where text_id = ?", (pos_count_6_cat[i][0], pos_count_6_cat[i][1], pos_count_6_cat[i][2],
 										   pos_count_6_cat[i][3], pos_count_6_cat[i][4], pos_count_6_cat[i][5],
-										   text_id_list[i],))
+										   pos_count_6_cat_normalization[i][0], pos_count_6_cat_normalization[i][1],
+										   pos_count_6_cat_normalization[i][2], pos_count_6_cat_normalization[i][3],
+										   pos_count_6_cat_normalization[i][4], pos_count_6_cat_normalization[i][5],
+										   text_id_list[i]))
 
 	db_connection.commit()
 	cur.close()
@@ -120,8 +129,8 @@ def pos_analysis(file_directory):
 	db_connection = sqlite3.connect(db_path)
 	cur = db_connection.cursor()
 
-	sql = '''select noun_pct, verb_pct, preposition_pct, qualifier_pct, 
-					function_pct, others_pct, click_bait from features;'''
+	sql = '''select noun_pct_norm, verb_pct_norm, preposition_pct_norm, qualifier_pct_norm, 
+					function_pct_norm, others_pct_norm, click_bait from features;'''
 	entries = cur.execute(sql)
 	entries = [list(e[:]) for e in entries]
 	entries = np.array(entries)

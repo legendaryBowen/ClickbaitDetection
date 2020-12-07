@@ -55,17 +55,20 @@ def word_contraction(file_directory, contraction_list):
 				word_contraction_count[i] += 1
 		i += 1
 
-	word_contraction_count_normalization = np.zeros(size, dtype=np.double)
-	max_count = np.amax(word_contraction_count)
-	min_count = np.amin(word_contraction_count)
-	d = max_count - min_count
+	# --- normalization for word_contraction_count ---#
+	# word_contraction_count_normalization = np.zeros(size, dtype=np.double)
+	# max_count = np.amax(word_contraction_count)
+	# min_count = np.amin(word_contraction_count)
+	# d = max_count - min_count
+	# for i in range(0, size):
+	# 	word_contraction_count_normalization[i] = (word_contraction_count[i] - min_count) / d
 
-	for i in range(0, size):
-		word_contraction_count_normalization[i] = (word_contraction_count[i] - min_count) / d
+	# --- Standardization --- #
+	word_contraction_count_normalization = (word_contraction_count - np.mean(word_contraction_count)) / np.std(word_contraction_count)
 
-	for i in range(0, 19463):
-		cur.execute("update features set word_contraction = ?, word_contraction_norm = ? where text_id = ?",
-					(int(word_contraction_count[i]), word_contraction_count_normalization[i], entries[i][0]))
+	for j in range(0, len(entries)):
+		cur.execute("update features_copy set word_contraction = ?, word_contraction_norm = ? where text_id = ?",
+					(int(word_contraction_count[j]), word_contraction_count_normalization[j], entries[j][0]))
 
 	db_connection.commit()
 	cur.close()
