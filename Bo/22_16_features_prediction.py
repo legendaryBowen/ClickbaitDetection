@@ -91,6 +91,9 @@ def get_data(file_directory, data):
 
 def get_report(model, X_train, X_test, y_train, y_test, threshold):
 	model.fit(X_train, y_train)
+	coefficients = pd.concat([pd.DataFrame(X_train.columns), pd.DataFrame(np.transpose(abs(model.coef_)))], axis=1)
+	coefficients.columns = ['feature', 'coefficient']
+	print(coefficients.sort_values(by='coefficient', ascending=False))
 	predict_decimal = model.predict_proba(X_test)
 	predict_decimal = (predict_decimal - np.min(predict_decimal)) / (np.max(predict_decimal) - np.min(predict_decimal))
 	predict_decimal = predict_decimal[:][:, 1:2]
@@ -370,7 +373,7 @@ with all features: (>0.32)
    macro avg       0.75      0.75      0.75      3892
 weighted avg       0.80      0.80      0.80      3892
 """
-# skfold_LR(file_directory, 5, 0.33, 1)
+skfold_LR(file_directory, 5, 0.33, 1)
 
 """
 with all features: (>0.22), kernel='rbf'
@@ -419,7 +422,7 @@ random forest: (>0.3)
    macro avg       0.74      0.76      0.75      3892
 weighted avg       0.81      0.80      0.80      3892
 """
-RF(file_directory, 20, 50, 0.3, 1)
+# RF(file_directory, 20, 50, 0.3, 1)
 
 
 # """hybrid - VotingClassifier"""
