@@ -108,6 +108,8 @@ def skfold_LR(file_directory, k, threshold, data):
 	df = get_data(file_directory, data)
 
 	X = df.iloc[:, 3:]
+	# X.drop(['sentiment_norm', 'starts_with_number', 'numOfNumericsNorm', 'verb_pct_norm',
+	# 		'word_contraction_norm', 'others_pct_norm'], axis=1, inplace=True)
 	y = df.iloc[:, 1:2]
 
 	kf = StratifiedKFold(n_splits=k)
@@ -140,6 +142,8 @@ def skfold_SVM(file_directory, k, kernel, threshold, data):
 	df = get_data(file_directory, data)
 
 	X = df.iloc[:, 3:]
+	# X.drop(['sentiment_norm', 'starts_with_number', 'numOfNumericsNorm', 'verb_pct_norm',
+	# 		'word_contraction_norm', 'others_pct_norm'], axis=1, inplace=True)
 	y = df.iloc[:, 1:2]
 
 	kf = StratifiedKFold(n_splits=k)
@@ -185,6 +189,8 @@ def skfold_SVM(file_directory, k, kernel, threshold, data):
 def RF(file_directory, depth_start, depth_end, threshold, data):
 	df = get_data(file_directory, data)
 	X = df.iloc[:, 3:]
+	# X.drop(['sentiment_norm', 'starts_with_number', 'numOfNumericsNorm', 'verb_pct_norm',
+	# 		'word_contraction_norm', 'others_pct_norm'], axis=1, inplace=True)
 	y = df.iloc[:, 1:2]
 
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=15)
@@ -282,6 +288,8 @@ def RF(file_directory, depth_start, depth_end, threshold, data):
 def hybrid(model1, weight1, model2, weight2, names, data, threshold):
 	df = get_data(file_directory, data)
 	X = df.iloc[:, 3:]
+	# X.drop(['sentiment_norm', 'starts_with_number', 'numOfNumericsNorm', 'verb_pct_norm',
+	# 		'word_contraction_norm', 'others_pct_norm'], axis=1, inplace=True)
 	y = df.iloc[:, 1:2]
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
 	y_train = np.squeeze(np.asarray(y_train))
@@ -302,6 +310,8 @@ def stacking(file_directory, data, threshold, kernel):
 	pca = PCA(n_components=2)
 	df = get_data(file_directory, data)
 	X = df.iloc[:, 3:]
+	# X.drop(['sentiment_norm', 'starts_with_number', 'numOfNumericsNorm', 'verb_pct_norm',
+	# 		'word_contraction_norm', 'others_pct_norm'], axis=1, inplace=True)
 	y = df.iloc[:, 1:2]
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
 	X_train = np.array(X_train)
