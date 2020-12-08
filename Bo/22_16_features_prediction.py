@@ -8,7 +8,6 @@ from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKF
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from mlxtend.plotting import plot_decision_regions, plot_learning_curves
-# from mlxtend.classifier import StackingClassifier
 from sklearn.ensemble import StackingClassifier
 from sklearn.metrics import classification_report
 from sklearn.ensemble import VotingClassifier
@@ -91,12 +90,15 @@ def get_data(file_directory, data):
 
 def get_report(model, X_train, X_test, y_train, y_test, threshold):
 	model.fit(X_train, y_train)
-	coefficients = pd.concat([pd.DataFrame(X_train.columns), pd.DataFrame(np.transpose(abs(model.coef_)))], axis=1)
+	coefficients = pd.concat([pd.DataFrame(X_train.columns), pd.DataFrame(np.transpose(model.coef_))], axis=1)
 	coefficients.columns = ['feature', 'coefficient']
 	print(coefficients.sort_values(by='coefficient', ascending=False))
 	predict_decimal = model.predict_proba(X_test)
 	predict_decimal = (predict_decimal - np.min(predict_decimal)) / (np.max(predict_decimal) - np.min(predict_decimal))
 	predict_decimal = predict_decimal[:][:, 1:2]
+	print(X_test.iloc[[604], [1]], X_test.iloc[[604], [2]], X_test.iloc[[604], [3]], X_test.iloc[[604], [10]])
+	print(y_test[604])
+	print(predict_decimal[604])
 	predict = np.int64(predict_decimal >= threshold)
 	report = classification_report(y_test, predict)
 	return report
@@ -432,7 +434,7 @@ random forest: (>0.3)
    macro avg       0.74      0.76      0.75      3892
 weighted avg       0.81      0.80      0.80      3892
 """
-# RF(file_directory, 20, 50, 0.3, 1)
+# RF(file_directory, 2, 30, 0.5, 2)
 
 
 # """hybrid - VotingClassifier"""
