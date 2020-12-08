@@ -36,9 +36,7 @@ for i in range(0, test_count):
 	y = [e[1] for e in entries]
 	X = np.array(X)		# np.array, str, length=19470
 	y = np.array(y).astype(int)  # np.array, int, length=19470
-	# print(type(X), type(X[0]), type(y), type(y[0]))
-	print(X[0:4])
-	print(y[0:4])
+
 
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=r)
 	# print(type(X_test), type(X_test[0]), type(y_train), type(y_train[0]))
@@ -56,8 +54,10 @@ for i in range(0, test_count):
 	# print(clf.coef_)
 
 	X_test_matrix = count_vec.transform(X_test)
-	# print(X_test_matrix)
+
+	print(X_test_matrix.shape)
 	predicted = clf.predict(X_test_matrix)
+
 	print(classification_report(y_test, predicted))
 
 	# accuracy = accuracy_score(y_test, predicted)

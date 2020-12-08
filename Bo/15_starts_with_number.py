@@ -30,10 +30,10 @@ def starts_with_number(file_directory):
 	entries = cur.execute(sql)
 	entries = [list(e[:]) for e in entries]
 
-	cur.execute("update features set starts_with_number = 0")
+	cur.execute("update features_copy set starts_with_number = 0")
 
-	for e in entries:
-		cur.execute("update features set starts_with_number = 1 where text_id = ?", (e[0],))
+	# for e in entries:
+	# 	cur.execute("update features_copy set starts_with_number = 1 where text_id = ?", (e[0],))
 
 	db_connection.commit()
 	cur.close()

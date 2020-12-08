@@ -31,12 +31,15 @@ pd.set_option('display.width', 1000)
 pd.set_option('display.max_colwidth', 1000)
 
 
-def get_data(file_directory):
+def get_data(file_directory, data):
+	sql = None
 	db_path = file_directory + "\\click_baitX.sqlite"
 	db_connection = sqlite3.connect(db_path)
 	cur = db_connection.cursor()
-
-	sql = '''select post_text, click_bait from main;'''
+	if data == 1:
+		sql = '''select post_text, click_bait from main;'''
+	elif data == 2:
+		sql = '''select post_text, click_bait from main_2;'''
 	entries = cur.execute(sql)
 	entries = [list(e[:]) for e in entries]
 
@@ -65,14 +68,20 @@ def get_data(file_directory):
 def n_gram_result_LR(C, X_train_tfidf, y_train, X_test_tfidf, y_test):
 	model = LogisticRegression(penalty="l2", C=C, max_iter=3000)
 	model.fit(X_train_tfidf, y_train)
-	predict = model.predict(X_test_tfidf)
-	# predict = model.predict(X_train_tfidf)
+	# predict = model.predict(X_test_tfidf)
+	# # predict = model.predict(X_train_tfidf)
+	# print(classification_report(y_test, predict))
+	# # print(classification_report(y_train, predict))
+
+	predict_decimal = model.predict_proba(X_test_tfidf)
+	predict_decimal = (predict_decimal - np.min(predict_decimal)) / (np.max(predict_decimal) - np.min(predict_decimal))
+	predict_decimal = predict_decimal[:][:, 1:2]
+	predict = np.int64(predict_decimal >= 0.3)
 	print(classification_report(y_test, predict))
-	# print(classification_report(y_train, predict))
 
 
-def n_gram_prediction_LR(file_directory, min_df_start, min_df_end, max_df_start, max_df_end, min_ngram, max_ngram):
-	entries = get_data(file_directory)
+def n_gram_prediction_LR(file_directory, min_df_start, min_df_end, max_df_start, max_df_end, min_ngram, max_ngram, data):
+	entries = get_data(file_directory, data)
 
 	best_parameter = [0, 0, 0, 0]
 	X_train_tfidf = y_train = X_test_tfidf = y_test = None
@@ -136,8 +145,8 @@ def n_gram_prediction_LR(file_directory, min_df_start, min_df_end, max_df_start,
 	n_gram_result_LR(best_parameter[3], X_train_tfidf, y_train, X_test_tfidf, y_test)
 
 
-def n_gram_prediction_RF(file_directory, min_df_start, min_df_end, max_df_start, max_df_end, min_ngram, max_ngram, forest_depth):
-	entries = get_data(file_directory)
+def n_gram_prediction_RF(file_directory, min_df_start, min_df_end, max_df_start, max_df_end, min_ngram, max_ngram, depth_start, depth_end, data):
+	entries = get_data(file_directory, data)
 
 	# X_train_tfidf = y_train = X_test_tfidf = y_test = None
 	for i in range(min_df_start, min_df_end+1):
@@ -195,7 +204,7 @@ def n_gram_prediction_RF(file_directory, min_df_start, min_df_end, max_df_start,
 			macro_recall = []
 			macro_f1 = []
 
-			for k in range(20, forest_depth):
+			for k in range(depth_start, depth_end):
 				r = random.randint(0, 100)
 				model = RandomForestClassifier(max_depth=k, random_state=r)
 				model.fit(X_train_tfidf,y_train)
@@ -260,8 +269,8 @@ def n_gram_prediction_RF(file_directory, min_df_start, min_df_end, max_df_start,
 			# plt.show()
 
 
-def n_gram_analysis(file_directory, min_fq, top_n):
-	entries = get_data(file_directory)
+def n_gram_analysis(file_directory, min_fq, top_n, data):
+	entries = get_data(file_directory, data)
 
 	long_list = []
 	# for e in entries[24:29]:
@@ -275,35 +284,49 @@ def n_gram_analysis(file_directory, min_fq, top_n):
 	biGramFinder.apply_word_filter(filterC)
 	biGramFinder.apply_freq_filter(min_fq)
 	r = biGramFinder.nbest(BigramAssocMeasures.likelihood_ratio, top_n)
-	print("top", top_n, "2-gram with min_frequency:", min_fq)
+	print("total 2-gram ", "frequency >", min_fq, "is", len(biGramFinder.ngram_fd.items()))
+	print("top", top_n, "2-gram with min_frequency", min_fq)
 	print(r)
-	print(len(r))
 	print("\n")
 
 	triGramFinder = TrigramCollocationFinder.from_words(long_list)
 	triGramFinder.apply_word_filter(filterC)
 	triGramFinder.apply_freq_filter(min_fq)
 	r = triGramFinder.nbest(TrigramAssocMeasures.likelihood_ratio, top_n)
+	print("total 3-gram ", "frequency >", min_fq, "is", len(triGramFinder.ngram_fd.items()))
 	print("top", top_n, "3-gram with min_frequency:", min_fq)
 	print(r)
-	print(len(r))
 	print("\n")
+
+
 
 	quadGramFinder = QuadgramCollocationFinder.from_words(long_list)
 	quadGramFinder.apply_word_filter(filterC)
 	quadGramFinder.apply_freq_filter(min_fq)
 	r = quadGramFinder.nbest(QuadgramAssocMeasures.likelihood_ratio, top_n)
+	print("total 4-gram ", "frequency >", min_fq, "is", len(quadGramFinder.ngram_fd.items()))
 	print("top", top_n, "4-gram with min_frequency:", min_fq)
 	print(r)
-	print(len(r))
 	print("\n")
-
 
 # start from here
 os.chdir(os.path.dirname(__file__))
 file_directory = os.getcwd()
 
 
-# n_gram_analysis(file_directory, 10, 10)
-# n_gram_prediction_LR(file_directory, 3, 5, 0.4, 0.6, 2, 3)
-n_gram_prediction_RF(file_directory, 3, 3, 0.4, 0.4, 2, 3, 21)
+n_gram_analysis(file_directory, 70, 10, 1)
+
+"""
+best parameter [5, 0.4, {'C': 90.52631578947368}, 0.7453926093575287]
+              precision    recall  f1-score   support
+
+           0       0.81      0.94      0.87      4408
+           1       0.63      0.31      0.41      1430
+
+    accuracy                           0.79      5838
+   macro avg       0.72      0.63      0.64      5838
+weighted avg       0.76      0.79      0.76      5838
+"""
+# n_gram_prediction_LR(file_directory, 4, 5, 0.5, 0.6, 2, 3, 2)
+
+# n_gram_prediction_RF(file_directory, 4, 5, 0.5, 0.6, 2, 3, 3, 40, 2)

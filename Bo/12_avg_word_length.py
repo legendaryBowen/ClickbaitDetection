@@ -7,6 +7,7 @@ This file:
 """
 
 from nltk.tokenize import word_tokenize, sent_tokenize, regexp_tokenize
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -40,19 +41,32 @@ def avg_word_length(file_directory):
 			avg_word_length = sum_word_length / word_count
 		length_avg.append([e[0], avg_word_length])
 
-
 	temp = np.array(length_avg)
 	temp = temp[:, 1]
 	temp = temp.astype(np.double)
-	max = np.amax(temp)
-	min = np.amin(temp)
-	d = max - min
+	# --- Normalization --- #
+	# max = np.amax(temp)
+	# min = np.amin(temp)
+	# d = max - min
+	#
+	# for i in length_avg:
+	# 	text_id = i[0]
+	# 	avg_word_length = i[1]
+	# 	avg_word_length_normalization = (avg_word_length - min) / d
+	# 	cur.execute("update features set avg_word_length = ?, avg_word_length_norm = ?"
+	# 				" where text_id = ?", (avg_word_length, avg_word_length_normalization, text_id))
 
-	for i in length_avg:
-		text_id = i[0]
-		avg_word_length = i[1]
-		avg_word_length_normalization = (avg_word_length - min) / d
-		cur.execute("update features set avg_word_length = ?, avg_word_length_norm = ?"
+	# --- Standardization --- #
+	avg_word_length_normalization_list = (temp - np.mean(temp)) / np.std(temp)
+
+	i = 0
+	for e in length_avg:
+		text_id = e[0]
+		avg_word_length = e[1]
+		avg_word_length_normalization = avg_word_length_normalization_list[i]
+		i += 1
+
+		cur.execute("update features_copy set avg_word_length = ?, avg_word_length_norm = ?"
 					" where text_id = ?", (avg_word_length, avg_word_length_normalization, text_id))
 
 	db_connection.commit()
@@ -87,13 +101,15 @@ def avg_word_length_analysis(file_directory):
 	pct_plot1.set_xlabel("AVG Word Length: AWL")
 	pct_plot1.set_ylabel("% of Headlines with AWL")
 	pct_plot1.set_title(label="'non-cb' and 'cb' distribution")
+	plt.xticks(rotation=45)
+	plt.show()
 
 	df1 = df1.divide(df1.sum(axis=1), axis=0)
 	pct_plot2 = df1.plot(kind="bar", stacked=False)
 	pct_plot2.set_xlabel('AVG Word Length: AWL')
 	pct_plot2.set_ylabel("Composition with AWL")
 	pct_plot2.set_title(label="composition of 'non-cb' and 'cb' headlines")
-
+	plt.xticks(rotation=45)
 	plt.show()
 
 	print("deviation of 'avg_word_length' of clickbait tweet:")

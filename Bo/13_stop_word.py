@@ -7,7 +7,6 @@ This file:
 2. analyze the "stopword_count", "stopword_percentage" and plot the image
 """
 
-
 from nltk.tokenize import word_tokenize, sent_tokenize, regexp_tokenize
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk.corpus import stopwords
@@ -58,20 +57,24 @@ def stop_word_ratio(file_directory):
 			stop_words_percentage[i] = stop_words_count[i] / tweet_length_count
 		i += 1
 
-	# normalization for stopword_count
-	max = np.amax(stop_words_count)
-	min = np.amin(stop_words_count)
-	d = max - min
+	# --- normalization for stopword_count ---#
+	# max = np.amax(stop_words_count)
+	# min = np.amin(stop_words_count)
+	# d = max - min
+	# stop_words_count_normalization = np.zeros(len(stop_words_count), dtype=np.double)
+	# for i in range(0, len(stop_words_count_normalization)):
+	# 	stop_words_count_normalization[i] = (stop_words_count[i] - min) / d
 
-	stop_words_count_normalization = np.zeros(len(stop_words_count), dtype=np.double)
+	# --- Standardization --- #
+	stop_words_count_normalization = (stop_words_count - np.mean(stop_words_count)) / np.std(stop_words_count)
+	stop_words_percentage_normalization = (stop_words_percentage - np.mean(stop_words_percentage)) / np.std(stop_words_percentage)
 
-	for i in range(0, len(stop_words_count_normalization)):
-		stop_words_count_normalization[i] = (stop_words_count[i] - min) / d
-
-	for i in range(0, 19459):
+	for i in range(0, len(entries)):
 		c = int(stop_words_count[i])
-		cur.execute("update features set stopword_count = ?, stopword_pct = ?, stopword_count_norm = ?"
-					" where text_id = ?", (c, stop_words_percentage[i], stop_words_count_normalization[i], entries[i][0]))
+		cur.execute("update features_copy set stopword_count = ?, stopword_pct = ?, stopword_count_norm = ?, "
+					"stopword_pct_norm = ? where text_id = ?",
+					(c, stop_words_percentage[i], stop_words_count_normalization[i], stop_words_percentage_normalization[i],
+					 int(entries[i][0])))
 
 	db_connection.commit()
 	cur.close()
@@ -84,7 +87,7 @@ def stop_word_ratio_analysis(file_directory):
 	db_connection = sqlite3.connect(db_path)
 	cur = db_connection.cursor()
 
-	sql = '''select stopword_count, stopword_pct, click_bait from features;'''
+	sql = '''select stopword_count, stopword_pct_norm, click_bait from features;'''
 	entries = cur.execute(sql)
 	entries = [list(e[:]) for e in entries]
 	entries = np.array(entries)
@@ -103,12 +106,16 @@ def stop_word_ratio_analysis(file_directory):
 	pct_plot1.set_xlabel("Stop Word Count: SWC")
 	pct_plot1.set_ylabel("% of Headlines with SWC")
 	pct_plot1.set_title(label="global 'non-cb' and 'cb' distribution")
+	plt.xticks(rotation=45)
+	plt.show()
 
 	df1 = df1.divide(df1.sum(axis=1), axis=0)
 	pct_plot2 = df1.plot(kind="bar", stacked=False)
 	pct_plot2.set_xlabel("Stop Word Count: SWC")
 	pct_plot2.set_ylabel("Composition with SWC")
 	pct_plot2.set_title(label="global 'non-cb' and 'cb' distribution")
+	plt.xticks(rotation=45)
+	plt.show()
 
 	df2 = df.groupby("stopword_pct")["click_bait"].value_counts().unstack()
 	df2 = df2.divide(df2.sum(axis=0), axis=1)
@@ -116,13 +123,15 @@ def stop_word_ratio_analysis(file_directory):
 	pct_plot3.set_xlabel("Stop Word Percentage: SWP")
 	pct_plot3.set_ylabel("% of Headlines with SWP")
 	pct_plot3.set_title(label="'non-cb' and 'cb' distribution")
+	plt.xticks(rotation=45)
+	plt.show()
 
 	df2 = df2.divide(df2.sum(axis=1), axis=0)
 	pct_plot4 = df2.plot(kind="bar", stacked=False)
 	pct_plot4.set_xlabel("Stop Word Percentage: SWP")
 	pct_plot4.set_ylabel("Composition with SWP")
 	pct_plot4.set_title(label="composition of 'non-cb' and 'cb' headlines")
-
+	plt.xticks(rotation=45)
 	plt.show()
 
 	print("standard deviation of 'stop_word_percentage' of click_bait",
