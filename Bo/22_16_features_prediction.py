@@ -96,9 +96,9 @@ def get_report(model, X_train, X_test, y_train, y_test, threshold):
 	predict_decimal = model.predict_proba(X_test)
 	predict_decimal = (predict_decimal - np.min(predict_decimal)) / (np.max(predict_decimal) - np.min(predict_decimal))
 	predict_decimal = predict_decimal[:][:, 1:2]
-	print(X_test.iloc[[604], [1]], X_test.iloc[[604], [2]], X_test.iloc[[604], [3]], X_test.iloc[[604], [10]])
-	print(y_test[604])
-	print(predict_decimal[604])
+	# print(X_test.iloc[[604], [1]], X_test.iloc[[604], [2]], X_test.iloc[[604], [3]], X_test.iloc[[604], [10]])
+	# print(y_test[604])
+	# print(predict_decimal[604])
 	predict = np.int64(predict_decimal >= threshold)
 	report = classification_report(y_test, predict)
 	return report
